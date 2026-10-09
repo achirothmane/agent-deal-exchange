@@ -15,7 +15,8 @@ import {
   generateStoreHeaders,
 } from "../../utils/store";
 
-jest.setTimeout(60 * 1000);
+// This substrate initializes a full Medusa database on CI; allow migration setup time.
+jest.setTimeout(process.env.CI ? 240 * 1000 : 60 * 1000);
 
 medusaIntegrationTestRunner({
   inApp: true,
