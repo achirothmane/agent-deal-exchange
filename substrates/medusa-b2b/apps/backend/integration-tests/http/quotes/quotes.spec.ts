@@ -55,6 +55,15 @@ medusaIntegrationTestRunner({
         adminHeaders
       );
 
+      // Medusa's create-product workflow starts in DRAFT even when the
+      // creation input includes a status. Publishing is a separate update.
+      const { data: { product: publishedProduct } } = await api.post(
+        `/admin/products/${product.id}`,
+        { status: "published" },
+        adminHeaders
+      );
+      expect(publishedProduct.status).toBe("published");
+
       try {
         cart = await cartSeeder({
           api,
