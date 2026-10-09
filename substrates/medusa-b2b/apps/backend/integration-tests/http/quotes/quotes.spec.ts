@@ -44,6 +44,7 @@ medusaIntegrationTestRunner({
         api,
         adminHeaders,
         data: {
+          status: "published",
           sales_channels: [{ id: salesChannel.id }],
         },
       });
