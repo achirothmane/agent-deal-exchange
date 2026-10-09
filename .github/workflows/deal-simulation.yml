@@ -1,0 +1,26 @@
+name: Deal negotiation simulation
+
+on:
+  push:
+    paths:
+      - 'prototype/deal-sim/**'
+      - '.github/workflows/deal-simulation.yml'
+  pull_request:
+    paths:
+      - 'prototype/deal-sim/**'
+      - '.github/workflows/deal-simulation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  negotiate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run bounded negotiation tests
+        run: node --test prototype/deal-sim/engine.test.mjs
