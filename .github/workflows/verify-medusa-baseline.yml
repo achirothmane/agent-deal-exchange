@@ -11,6 +11,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: medusa-baseline-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   medusa-baseline:
     runs-on: ubuntu-latest
