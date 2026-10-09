@@ -55,15 +55,28 @@ medusaIntegrationTestRunner({
         adminHeaders
       );
 
-      cart = await cartSeeder({
-        api,
-        storeHeaders,
-        data: {
-          region_id: region.id,
-          sales_channel_id: salesChannel.id,
-          items: [{ quantity: 1, variant_id: product.variants[0].id }],
-        },
-      });
+      try {
+        cart = await cartSeeder({
+          api,
+          storeHeaders,
+          data: {
+            region_id: region.id,
+            sales_channel_id: salesChannel.id,
+            items: [{ quantity: 1, variant_id: product.variants[0].id }],
+          },
+        });
+      } catch (error: any) {
+        // CI fixture diagnostics only; no customer records or credentials logged.
+        console.error("quote-fixture", JSON.stringify({
+          productStatus: product.status,
+          productVariantCount: product.variants?.length,
+          region: region.id,
+          salesChannel: salesChannel.id,
+          responseStatus: error.response?.status,
+          responseData: error.response?.data,
+        }));
+        throw error;
+      }
     });
 
     describe("POST /store/quotes", () => {
