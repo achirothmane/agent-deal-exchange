@@ -9,7 +9,7 @@ import { MedusaError } from "@medusajs/framework/utils";
  * A production agent additionally needs scoped, revocable delegation.
  */
 export async function requireQuoteOwner(
-  query: RemoteQueryFunction,
+  query: Pick<RemoteQueryFunction, "graph">,
   quoteId: string,
   customerId: string | undefined
 ): Promise<void> {
