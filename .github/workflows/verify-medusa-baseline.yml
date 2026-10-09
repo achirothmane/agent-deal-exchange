@@ -35,9 +35,9 @@ jobs:
         working-directory: substrates/medusa-b2b
 
     env:
-      DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/medusa_b2b
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/medusa_b2b
       DB_NAME: medusa_b2b
-      DB_HOST: 127.0.0.1
+      DB_HOST: localhost
       DB_PORT: '5432'
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
