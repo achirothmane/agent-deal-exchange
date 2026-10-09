@@ -1,3 +1,4 @@
+import { requireQuoteOwner } from "../../require-quote-owner";
 import type {
   AuthenticatedMedusaRequest,
   MedusaResponse,
@@ -17,13 +18,15 @@ export const GET = async (
     ContainerRegistrationKeys.QUERY
   );
 
+  await requireQuoteOwner(query, id, req.auth_context.actor_id);
+
   const {
     data: [quote],
   } = await query.graph(
     {
       entity: "quote",
       fields: req.queryConfig.fields,
-      filters: { id },
+      filters: { id, customer_id: req.auth_context.actor_id },
     },
     { throwIfKeyNotFound: true }
   );
