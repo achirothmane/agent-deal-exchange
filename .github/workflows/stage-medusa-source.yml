@@ -1,0 +1,44 @@
+name: Stage pinned Medusa source history
+
+on:
+  push:
+    branches:
+      - d1/medusa-source-import
+    paths:
+      - '.github/workflows/stage-medusa-source.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  stage-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out full product history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Import pinned upstream as an unsquashed subtree
+        shell: bash
+        run: |
+          set -euo pipefail
+          PIN="3ed7131d480ed4dbc8387bcc5f6cca606442d051"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add medusa https://github.com/medusajs/b2b-starter.git
+          git fetch --no-tags medusa main
+          git cat-file -e "${PIN}^{commit}"
+
+          test ! -e substrates/medusa-b2b
+          git subtree add --prefix=substrates/medusa-b2b "$PIN" \
+            -m "import: preserve Medusa B2B Starter upstream history at $PIN"
+
+          test -f substrates/medusa-b2b/LICENSE
+          test -f substrates/medusa-b2b/apps/backend/package.json
+          test -f substrates/medusa-b2b/apps/backend/src/modules/quote/models/quote.ts
+          git merge-base --is-ancestor "$PIN" HEAD
+          echo "Imported source at $PIN with upstream ancestor preserved."
+          git log -1 --format="Import commit: %H%nParent commits: %P"
+          git push origin "HEAD:refs/heads/d1/medusa-source-import"
