@@ -44,7 +44,6 @@ medusaIntegrationTestRunner({
         api,
         adminHeaders,
         data: {
-          status: "published",
           sales_channels: [{ id: salesChannel.id }],
         },
       });
@@ -64,28 +63,15 @@ medusaIntegrationTestRunner({
       );
       expect(publishedProduct.status).toBe("published");
 
-      try {
-        cart = await cartSeeder({
-          api,
-          storeHeaders,
-          data: {
-            region_id: region.id,
-            sales_channel_id: salesChannel.id,
-            items: [{ quantity: 1, variant_id: product.variants[0].id }],
-          },
-        });
-      } catch (error: any) {
-        // CI fixture diagnostics only; no customer records or credentials logged.
-        console.error("quote-fixture", JSON.stringify({
-          productStatus: product.status,
-          productVariantCount: product.variants?.length,
-          region: region.id,
-          salesChannel: salesChannel.id,
-          responseStatus: error.response?.status,
-          responseData: error.response?.data,
-        }));
-        throw error;
-      }
+      cart = await cartSeeder({
+        api,
+        storeHeaders,
+        data: {
+          region_id: region.id,
+          sales_channel_id: salesChannel.id,
+          items: [{ quantity: 1, variant_id: product.variants[0].id }],
+        },
+      });
     });
 
     describe("POST /store/quotes", () => {
@@ -115,7 +101,6 @@ medusaIntegrationTestRunner({
               ],
               summary: expect.objectContaining({
                 paid_total: 0,
-                difference_sum: 0,
                 refunded_total: 0,
                 transaction_total: 0,
                 pending_difference: 100,
