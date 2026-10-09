@@ -290,5 +290,65 @@ medusaIntegrationTestRunner({
         );
       });
     });
+    describe("Quote ownership isolation", () => {
+      it("denies second customer quote access and mutation without changing owner state", async () => {
+        const { data: { quote: ownedQuote } } = await api.post(
+          "/store/quotes", { cart_id: cart.id }, storeHeaders
+        );
+        await api.post(`/admin/quotes/${ownedQuote.id}/send`, {}, adminHeaders);
+
+        const otherEmail = "quote-second-customer@example.test";
+        const { data: { token: registrationToken } } = await api.post(
+          "/auth/customer/emailpass/register",
+          { email: otherEmail, password: "test-only-second-user" }
+        );
+        await api.post("/store/customers", { email: otherEmail }, {
+          headers: {
+            ...storeHeaders.headers,
+            Authorization: `Bearer ${registrationToken}`,
+          },
+        });
+        const { data: { token: otherToken } } = await api.post(
+          "/auth/customer/emailpass",
+          { email: otherEmail, password: "test-only-second-user" }
+        );
+        const otherHeaders = {
+          headers: {
+            ...storeHeaders.headers,
+            Authorization: `Bearer ${otherToken}`,
+          },
+        };
+
+        const mustNotSee = async (promise) => {
+          let status: number | undefined;
+          try {
+            await promise;
+          } catch (err: any) {
+            status = err.response?.status;
+          }
+          expect(status).toBe(404);
+        };
+
+        await mustNotSee(api.get(`/store/quotes/${ownedQuote.id}`, otherHeaders));
+        await mustNotSee(api.get(`/store/quotes/${ownedQuote.id}/preview`, otherHeaders));
+        await mustNotSee(api.post(`/store/quotes/${ownedQuote.id}/accept`, {}, otherHeaders));
+        await mustNotSee(api.post(`/store/quotes/${ownedQuote.id}/reject`, {}, otherHeaders));
+        await mustNotSee(api.post(
+          `/store/quotes/${ownedQuote.id}/messages`,
+          { text: "This must not be recorded" },
+          otherHeaders
+        ));
+
+        const { data: { quote: after } } = await api.get(
+          `/store/quotes/${ownedQuote.id}`, storeHeaders
+        );
+        expect(after.status).toBe("pending_customer");
+        const { data: { quote: ownerAccepted } } = await api.post(
+          `/store/quotes/${ownedQuote.id}/accept`, {}, storeHeaders
+        );
+        expect(ownerAccepted.status).toBe("accepted");
+      });
+    });
+
   },
 });
